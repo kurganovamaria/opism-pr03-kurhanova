@@ -10,12 +10,12 @@
 
 | Поле | Значення |
 |---|---|
-| ПІБ | |
-| Група | |
-| Ідентифікатор (`sNN`) | |
-| Дата виконання | |
-| Середовище | <!-- GitHub Codespaces або інше; якщо інше, вказати яке --> |
-| Версія `dig` | <!-- перший рядок виводу команди dig -v у терміналі стенда --> |
+| ПІБ |Курганова Марія Григорівна |
+| Група |F2 2.01 |
+| Ідентифікатор (`sNN`) |se-201-17 |
+| Дата виконання |01.11.2026 |
+| Середовище | GitHub Codespaces |
+| Версія `dig` | DiG 9.18.39-0ubuntu0.24.04.8-Ubuntu |
 
 ## Параметри варіанта
 
@@ -23,9 +23,9 @@
 
 | Параметр | Значення |
 |---|---|
-| `$TTL`, с | |
-| TTL запису SOA, с | |
-| Поле `minimum` SOA, с | |
+| `$TTL`, с |30 |
+| TTL запису SOA, с |45 |
+| Поле `minimum` SOA, с |40 |
 | Псевдонім (CNAME на `www`) | |
 | Другий хост і його TTL, с | |
 | Пріоритет MX | |
@@ -40,19 +40,19 @@
 
 | № | scheme | userinfo | host | port | path | query | fragment |
 |---|---|---|---|---|---|---|---|
-| 1 | | | | | | | |
-| 2 | | | | | | | |
-| 3 | | | | | | | |
-| 4 | | | | | | | |
-| 5 | | | | | | | |
+| 1 |http | - |www.se-201-17.lab |80 |/users/archive |id=23&lang=asc |section-2 |
+| 2 |http | - |files.se-201-17.lab |80 |/archive/ |id=%D0%BA%D0%B8%D1%97%D0%B2 | - |
+| 3 |http | user:pass |stage.se-201-17.lab |80 |/users | - |comments |
+| 4 |https | - |www.se-201-17.lab |4443 |/users/.../archive | - | - |
+| 5 |mailto | - | - | - |admin@se-201-17.lab |subject=users | - |
 
 | № | Ім'я, що запитується в DNS | Заголовок `Host` | Ціль запиту (request target) |
 |---|---|---|---|
-| 1 | | | |
-| 2 | | | |
-| 3 | | | |
-| 4 | | | |
-| 5 | | | |
+| 1 |www.se-201-17.lab |www.se-201-17.lab |users/archive?id=23&lang=asc#section-2 |
+| 2 |files.se-201-17.lab |files.se-201-17.lab |archive/?id=%D0%BA%D0%B8%D1%97%D0%B2 |
+| 3 |stage.se-201-17.lab |stage.se-201-17.lab |/users |
+| 4 |www.se-201-17.lab |www.se-201-17.lab:4443 |/users/.../archive |
+| 5 |se-201-17.lab | - | - |
 
 Декодоване значення параметра URI 2:
 
@@ -63,102 +63,405 @@
 <!-- Для URI 1–3: рядки запиту (починаються з ">") і тіло відповіді сервера. -->
 
 ```text
-
+root@ns-se-201-17:/# curl -v "http://www.se-201-17.lab/users/archive?id=23&lang=asc#section-2"
+* Host www.se-201-17.lab:80 was resolved.
+* IPv6: (none)
+* IPv4: 10.53.0.80
+*   Trying 10.53.0.80:80...
+* Connected to www.se-201-17.lab (10.53.0.80) port 80
+> GET /users/archive?id=23&lang=asc HTTP/1.1
+> Host: www.se-201-17.lab
+> User-Agent: curl/8.5.0
+> Accept: */*
+> 
+< HTTP/1.1 200 OK
+< Server: nginx/1.24.0 (Ubuntu)
+< Date: Sun, 01 Nov 2026 13:13:57 GMT
+< Content-Type: text/plain
+< Content-Length: 142
+< Connection: keep-alive
+< 
+server: web-a
+Host: www.se-201-17.lab
+request URI: /users/archive?id=23&lang=asc
+path: /users/archive
+query: id=23&lang=asc
+client: 10.53.1.1
+* Connection #0 to host www.se-201-17.lab left intact
+root@ns-se-201-17:/# curl -v "http://files.se-201-17.lab:80/archive/?id=%D0%BA%D0%B8%D1%97%D0%B2"
+* Host files.se-201-17.lab:80 was resolved.
+* IPv6: (none)
+* IPv4: 10.53.0.80
+*   Trying 10.53.0.80:80...
+* Connected to files.se-201-17.lab (10.53.0.80) port 80
+> GET /archive/?id=%D0%BA%D0%B8%D1%97%D0%B2 HTTP/1.1
+> Host: files.se-201-17.lab
+> User-Agent: curl/8.5.0
+> Accept: */*
+> 
+< HTTP/1.1 200 OK
+< Server: nginx/1.24.0 (Ubuntu)
+< Date: Sun, 01 Nov 2026 13:14:04 GMT
+< Content-Type: text/plain
+< Content-Length: 160
+< Connection: keep-alive
+< 
+server: web-a
+Host: files.se-201-17.lab
+request URI: /archive/?id=%D0%BA%D0%B8%D1%97%D0%B2
+path: /archive/
+query: id=%D0%BA%D0%B8%D1%97%D0%B2
+client: 10.53.1.1
+* Connection #0 to host files.se-201-17.lab left intact
+root@ns-se-201-17:/# curl -v "http://user:pass@stage.se-201-17.lab/users#comments"
+* Host stage.se-201-17.lab:80 was resolved.
+* IPv6: (none)
+* IPv4: 10.53.0.81
+*   Trying 10.53.0.81:80...
+* Connected to stage.se-201-17.lab (10.53.0.81) port 80
+* Server auth using Basic with user 'user'
+> GET /users HTTP/1.1
+> Host: stage.se-201-17.lab
+> Authorization: Basic dXNlcjpwYXNz
+> User-Agent: curl/8.5.0
+> Accept: */*
+> 
+< HTTP/1.1 200 OK
+< Server: nginx/1.24.0 (Ubuntu)
+< Date: Sun, 01 Nov 2026 13:14:15 GMT
+< Content-Type: text/plain
+< Content-Length: 99
+< Connection: keep-alive
+< 
+server: web-b
+Host: stage.se-201-17.lab
+request URI: /users
+path: /users
+query: 
+client: 10.53.1.1
+* Connection #0 to host stage.se-201-17.lab left intact
 ```
 
 Значення заголовка `Authorization` і результат декодування:
 
 ```text
-
+> Authorization: Basic dXNlcjpwYXNz
+* Connection #0 to host stage.se-201-17.lab left intact
+root@ns-se-201-17:/# echo 'dXNlcjpwYXNz' | base64 -d
+user:passroot@ns-se-201-17:/# 
 ```
 
 URI 4: етап, на якому запит не вдається (пошук імені / TCP / TLS), і рядки виводу, що це підтверджують:
 
 ```text
-
+root@ns-se-201-17:/# curl -v https://www.se-201-17.lab:4443/users/../archive./archive
+* Host www.se-201-17.lab:4443 was resolved.
+* IPv6: (none)
+* IPv4: 10.53.0.80
+*   Trying 10.53.0.80:4443...
+* connect to 10.53.0.80 port 4443 from 10.53.1.1 port 37536 failed: Connection refused
+* Failed to connect to www.se-201-17.lab port 4443 after 1 ms: Couldn't connect to server
+* Closing connection
+curl: (7) Failed to connect to www.se-201-17.lab port 4443 after 1 ms: Couldn't connect to server
+root@ns-se-201-17:/# curl -v https://www.se-201-17.lab:4443/users/../archive
+* Host www.se-201-17.lab:4443 was resolved.
+* IPv6: (none)
+* IPv4: 10.53.0.80
+*   Trying 10.53.0.80:4443...
+* connect to 10.53.0.80 port 4443 from 10.53.1.1 port 57822 failed: Connection refused
+* Failed to connect to www.se-201-17.lab port 4443 after 0 ms: Couldn't connect to server
+* Closing connection
+curl: (7) Failed to connect to www.se-201-17.lab port 4443 after 0 ms: Couldn't connect to server
+root@ns-se-201-17:/# 
 ```
 
 | Запит | `request URI`, отриманий сервером | `path`, отриманий сервером |
 |---|---|---|
-| звичайний | | |
-| `--path-as-is` | | |
+| звичайний |/archive |/archive |
+| `--path-as-is` |/users/../archive |/archive |
 
 Розбіжності між URI та тим, що отримав сервер, і їх пояснення:
+Під час виконання звичайного запиту утиліта curl за замовчуванням самостійно виконує нормалізацію URL-шляху перед відправкою на сервер, видаляючи конструкції переходу на рівень вище на кшталт /users/../, через що сервер отримує вже скорочений шлях і request URI, які дорівнюють /archive. Водночас запит із прапорцем --path-as-is забороняє клієнту виконувати нормалізацію шляху, внаслідок чого запит передається на сервер в оригінальному вигляді зі збереженням усієї послідовності символів (/users/../archive), і сервер фіксує цей шлях у незмінному вигляді як у request URI, так і в path.
 
 ## Завдання 2. Проходження ієрархії вручну
 
 ```text
+root@ns-se-201-17:/# dig @10.53.0.2 ns.se-201-17.lab A +norec
 
+; <<>> DiG 9.18.39-0ubuntu0.24.04.8-Ubuntu <<>> @10.53.0.2 ns.se-201-17.lab A +norec
+; (1 server found)
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 26353
+;; flags: qr; QUERY: 1, ANSWER: 0, AUTHORITY: 1, ADDITIONAL: 2
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 1232
+; COOKIE: 8ecd707d75cd0e03010000006ae725c642fb406f615e7010 (good)
+;; QUESTION SECTION:
+;ns.se-201-17.lab.              IN      A
+
+;; AUTHORITY SECTION:
+lab.                    172800  IN      NS      ns1.nic.lab.
+
+;; ADDITIONAL SECTION:
+ns1.nic.lab.            172800  IN      A       10.53.0.3
+
+;; Query time: 79 msec
+;; SERVER: 10.53.0.2#53(10.53.0.2) (UDP)
+;; WHEN: Sun Nov 01 11:43:02 UTC 2026
+;; MSG SIZE  rcvd: 117
+
+root@ns-se-201-17:/# dig @10.53.0.3 ns.se-201-17.lab A +norec
+
+; <<>> DiG 9.18.39-0ubuntu0.24.04.8-Ubuntu <<>> @10.53.0.3 ns.se-201-17.lab A +norec
+; (1 server found)
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 59436
+;; flags: qr; QUERY: 1, ANSWER: 0, AUTHORITY: 1, ADDITIONAL: 2
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 1232
+; COOKIE: e4db22a8c9b5ef28010000006ae725ce674dc7f9391a6da7 (good)
+;; QUESTION SECTION:
+;ns.se-201-17.lab.              IN      A
+
+;; AUTHORITY SECTION:
+se-201-17.lab.          3600    IN      NS      ns.se-201-17.lab.
+
+;; ADDITIONAL SECTION:
+ns.se-201-17.lab.       3600    IN      A       10.53.1.1
+
+;; Query time: 40 msec
+;; SERVER: 10.53.0.3#53(10.53.0.3) (UDP)
+;; WHEN: Sun Nov 01 11:43:10 UTC 2026
+;; MSG SIZE  rcvd: 103
+
+root@ns-se-201-17:/# dig @10.53.1.1 ns.se-201-17.lab A +norec
+
+; <<>> DiG 9.18.39-0ubuntu0.24.04.8-Ubuntu <<>> @10.53.1.1 ns.se-201-17.lab A +norec
+; (1 server found)
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 48410
+;; flags: qr aa; QUERY: 1, ANSWER: 1, AUTHORITY: 1, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 1232
+; COOKIE: 6a13493038f93e1f010000006ae725dbf357d5fd81313762 (good)
+;; QUESTION SECTION:
+;ns.se-201-17.lab.              IN      A
+
+;; ANSWER SECTION:
+ns.se-201-17.lab.       30      IN      A       10.53.1.1
+
+;; AUTHORITY SECTION:
+se-201-17.lab.          30      IN      NS      ns.se-201-17.lab.
+
+;; Query time: 0 msec
+;; SERVER: 10.53.1.1#53(10.53.1.1) (UDP)
+;; WHEN: Sun Nov 01 11:43:23 UTC 2026
+;; MSG SIZE  rcvd: 103
 ```
 
 | Сервер | status | flags | ANSWER | AUTHORITY | ADDITIONAL |
 |---|---|---|---|---|---|
-| 10.53.0.2 | | | | | |
-| 10.53.0.3 | | | | | |
-| 10.53.1.1 | | | | | |
+| 10.53.0.2 |NOERROR |qr |0 |1 |2 |
+| 10.53.0.3 |NOERROR |qr |0 |1 |2 |
+| 10.53.1.1 |NOERROR |qr aa |1 |1 |1 |
 
 Вивід `dig ns.sNN.lab A +trace`:
 
 ```text
+; <<>> DiG 9.18.39-0ubuntu0.24.04.8-Ubuntu <<>> ns.se-201-17.lab A +trace
+;; global options: +cmd
+.                       83720   IN      NS      a.root-servers.net.
+;; Received 59 bytes from 10.53.0.53#53(10.53.0.53) in 0 ms
+
+lab.                    172800  IN      NS      ns1.nic.lab.
+;; Received 117 bytes from 10.53.0.2#53(a.root-servers.net) in 80 ms
+
+se-201-17.lab.          3600    IN      NS      ns.se-201-17.lab.
+;; Received 103 bytes from 10.53.0.3#53(ns1.nic.lab) in 39 ms
+
+ns.se-201-17.lab.       30      IN      A       10.53.1.1
+se-201-17.lab.          30      IN      NS      ns.se-201-17.lab.
+;; Received 103 bytes from 10.53.1.1#53(ns.se-201-17.lab) in 0 ms
 
 ```
 
 | Запит | TTL запису NS | Прапорець `aa` | Секція, у якій міститься NS |
 |---|---|---|---|
-| `dig @10.53.0.3 sNN.lab NS +norec` | | | |
-| `dig @10.53.1.1 sNN.lab NS +norec` | | | |
+| `dig @10.53.0.3 sNN.lab NS +norec` |3600 |Немає |AUTHORITY |
+| `dig @10.53.1.1 sNN.lab NS +norec` |30 |Є |ANSWER |
 
 1. Які відповіді є відсиланнями і за якими ознаками це визначено?
-
+Відповіді від серверів 10.53.0.2 та 10.53.0.3 є відсиланнями, оскільки вони не містять записів ANSWER для запитуваного імені, а лише вказують на інші сервери (NS) у секції AUTHORITY. 
 2. Для чого у відповіді TLD присутній запис у секції ADDITIONAL і що сталося б, якби його не було?
-
+У секції ADDITIONAL присутній запис A для NS-сервера, що дозволяє резолверу одразу отримати IP-адресу для подальшого запиту без необхідності робити додатковий запит на отримання цієї адреси. Якби цього запису не було, резолверу довелося б робити ще один запит для отримання IP-адреси NS-сервера, що збільшило б час відповіді.
 3. Яка з двох копій запису NS є авторитативною і чому?
-
+Авторитативною є копія на сервері 10.53.1.1, оскільки вона міститься у секції ANSWER і має прапорець aa.
 ## Завдання 3. Заповнення власної зони
 
 Вивід `zone-reload`:
 
 ```text
-
+root@ns-se-201-17:/# zone-reload
+zone se-201-17.lab/IN: loaded serial 2026110102
+OK
+zone reload queued
 ```
 
 <!-- Шість запитів до 10.53.1.1 з +norec, по одному на кожен рядок таблиці картки. -->
 
 | Запис | status | Прапорець `aa` | Значення в ANSWER | TTL | Відповідає картці (так/ні) |
 |---|---|---|---|---|---|
-| `www` A | | | | | |
-| псевдонім CNAME | | | | | |
-| `mail` A | | | | | |
-| `@` MX | | | | | |
-| `@` TXT | | | | | |
-| другий хост A | | | | | |
+| `www` A |NOERROR |Є |10.53.0.80 |30 |так |
+| псевдонім CNAME |NOERROR |Є |www.se-201-17.lab. |30 |так |
+| `mail` A |NOERROR |Є |10.53.0.80 |30 |так |
+| `@` MX |NOERROR |Є |35 mail.se-201-17.lab. |30 |так |
+| `@` TXT |NOERROR |Є |"lab-token=b22d1046" |30 |так |
+| другий хост A |NOERROR |Є |10.53.0.81 |40 |так |
 
 Порівняння відповідей резолвера та власного сервера:
 
 ```text
+root@ns-se-201-17:/# dig files.se-201-17.lab
+
+; <<>> DiG 9.18.39-0ubuntu0.24.04.8-Ubuntu <<>> files.se-201-17.lab
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 16977
+;; flags: qr rd ra; QUERY: 1, ANSWER: 2, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 1232
+;; QUESTION SECTION:
+;files.se-201-17.lab.           IN      A
+
+;; ANSWER SECTION:
+files.se-201-17.lab.    30      IN      CNAME   www.se-201-17.lab.
+www.se-201-17.lab.      30      IN      A       10.53.0.80
+
+;; Query time: 0 msec
+;; SERVER: 10.53.0.53#53(10.53.0.53) (UDP)
+;; WHEN: Sun Nov 01 12:43:42 UTC 2026
+;; MSG SIZE  rcvd: 82
+
+root@ns-se-201-17:/# dig @10.53.1.1 files.se-201-17.lab +norec
+
+; <<>> DiG 9.18.39-0ubuntu0.24.04.8-Ubuntu <<>> @10.53.1.1 files.se-201-17.lab +norec
+; (1 server found)
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 12744
+;; flags: qr aa; QUERY: 1, ANSWER: 2, AUTHORITY: 1, ADDITIONAL: 2
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 1232
+; COOKIE: baca33370595102a010000006ae7340646e89fcc60f3df58 (good)
+;; QUESTION SECTION:
+;files.se-201-17.lab.           IN      A
+
+;; ANSWER SECTION:
+files.se-201-17.lab.    30      IN      CNAME   www.se-201-17.lab.
+www.se-201-17.lab.      30      IN      A       10.53.0.80
+
+;; AUTHORITY SECTION:
+se-201-17.lab.          30      IN      NS      ns.se-201-17.lab.
+
+;; ADDITIONAL SECTION:
+ns.se-201-17.lab.       30      IN      A       10.53.1.1
+
+;; Query time: 0 msec
+;; SERVER: 10.53.1.1#53(10.53.1.1) (UDP)
+;; WHEN: Sun Nov 01 12:43:50 UTC 2026
+;; MSG SIZE  rcvd: 143
+
+root@ns-se-201-17:/# dig se-201-17.lab MX
+
+; <<>> DiG 9.18.39-0ubuntu0.24.04.8-Ubuntu <<>> se-201-17.lab MX
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 29078
+;; flags: qr rd ra; QUERY: 1, ANSWER: 1, AUTHORITY: 0, ADDITIONAL: 1
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 1232
+;; QUESTION SECTION:
+;se-201-17.lab.                 IN      MX
+
+;; ANSWER SECTION:
+se-201-17.lab.          30      IN      MX      35 mail.se-201-17.lab.
+
+;; Query time: 0 msec
+;; SERVER: 10.53.0.53#53(10.53.0.53) (UDP)
+;; WHEN: Sun Nov 01 12:45:14 UTC 2026
+;; MSG SIZE  rcvd: 63
+
+root@ns-se-201-17:/# dig @10.53.1.1 se-201-17.lab MX +norec
+
+; <<>> DiG 9.18.39-0ubuntu0.24.04.8-Ubuntu <<>> @10.53.1.1 se-201-17.lab MX +norec
+; (1 server found)
+;; global options: +cmd
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 19794
+;; flags: qr aa; QUERY: 1, ANSWER: 1, AUTHORITY: 1, ADDITIONAL: 3
+
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 1232
+; COOKIE: c49b5ca3f176b993010000006ae734696608439ed236ff7c (good)
+;; QUESTION SECTION:
+;se-201-17.lab.                 IN      MX
+
+;; ANSWER SECTION:
+se-201-17.lab.          30      IN      MX      35 mail.se-201-17.lab.
+
+;; AUTHORITY SECTION:
+se-201-17.lab.          30      IN      NS      ns.se-201-17.lab.
+
+;; ADDITIONAL SECTION:
+mail.se-201-17.lab.     30      IN      A       10.53.0.80
+ns.se-201-17.lab.       30      IN      A       10.53.1.1
+
+;; Query time: 0 msec
+;; SERVER: 10.53.1.1#53(10.53.1.1) (UDP)
+;; WHEN: Sun Nov 01 12:45:29 UTC 2026
+;; MSG SIZE  rcvd: 140
 
 ```
 
 | Запит | flags | ANSWER (кількість, типи) | AUTHORITY (кількість, типи) | ADDITIONAL (кількість, типи) | TTL |
 |---|---|---|---|---|---|
-| псевдонім через resolver-a | | | | | |
-| псевдонім через 10.53.1.1 | | | | | |
-| MX через resolver-a | | | | | |
-| MX через 10.53.1.1 | | | | | |
+| псевдонім через resolver-a |qr rd ra |2 |0 |1 |30 |
+| псевдонім через 10.53.1.1 |qr aa |2 |1 |2 |30 |
+| MX через resolver-a |qr rd ra |1 |0 |1 |30 |
+| MX через 10.53.1.1 |qr aa |1 |1 |3 |30 |
 
 Пояснення відмінностей:
 
 Повідомлення `zone-check` після тимчасового додавання `@ IN CNAME www`:
 
 ```text
-
+root@ns-se-201-17:/# zone-reload
+dns_master_load: /lab/zone/se-201-17.lab.zone:15: se-201-17.lab: CNAME and other data
+dns_master_load: /lab/zone/se-201-17.lab.zone:15: se-201-17.lab: CNAME and other data
+dns_master_load: /lab/zone/se-201-17.lab.zone:20: se-201-17.lab: CNAME and other data
+dns_master_load: /lab/zone/se-201-17.lab.zone:20: se-201-17.lab: CNAME and other data
+zone se-201-17.lab/IN: loading from master file /lab/zone/se-201-17.lab.zone failed: CNAME and other data
+zone se-201-17.lab/IN: not loaded due to errors.
 ```
 
 1. Який TTL має кожен запис зони і звідки це значення взято?
+Запис SOA має чітко прописаний TTL у 45 секунд. Для всіх інших стандартних записів (www, files, mail, MX, TXT і базових NS) час життя становить 30 секунд - вони просто підтягують його за замовчуванням з глобальної директиви $TTL 30, яка задана на початку файлу. А от для запису stage заданий індивідуальний TTL прямо в його рядку, тому там стоїть 40 секунд.
+
 
 2. Скільки записів містить секція ANSWER у відповіді на запит псевдоніма і чому?
+У секції ANSWER падає два записи: спочатку сам CNAME для files (який вказує на www), а одразу за ним - A-запис www з нашою адресою 10.53.0.80.
 
 3. Чому запис CNAME неможливо розмістити для імені `@`?
+Тому що @ - це ім'я зони se-201-17.lab, і згідно з правилами DNS, CNAME не може співіснувати з іншими записами для того ж імені. У цьому випадку для @ вже існують записи MX і TXT, тому додавання CNAME призведе до конфлікту.
 
 ## Завдання 4. TTL і видимість змін
 
