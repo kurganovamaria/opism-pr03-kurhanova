@@ -1,0 +1,23 @@
+; Zone se-201-17.lab — starting version.
+; After every change: increase the serial, then run  zone-reload
+$TTL 30
+@     45 IN SOA ns.se-201-17.lab. admin.se-201-17.lab. (
+            2026110111 ; serial
+            3600       ; refresh
+            600        ; retry
+            86400      ; expire
+            40         ; minimum
+        )
+@     IN NS ns.se-201-17.lab.
+ns    IN A  10.53.1.1
+
+; ---- add records from your variant card below this line ----
+www     IN      A       10.53.0.81
+files   IN      CNAME   www
+mail    IN      A       10.53.0.80
+@       IN      MX      35 mail
+@       IN      TXT     "lab-token=b22d1046"
+stage   40      IN      A       10.53.0.81
+new-jzyqu    IN    A    10.53.0.80
+new2-jzyqu   IN   A   10.53.0.80
+new3-jzyqu   IN   A   10.53.0.80
